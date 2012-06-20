@@ -23,6 +23,7 @@ from gevent import pywsgi
 
 import gunicorn
 from gunicorn.workers.async import AsyncWorker
+from gunicorn.util import pid_exists
 
 VERSION = "gevent/%s gunicorn/%s" % (gevent.__version__, gunicorn.__version__)
 
@@ -65,8 +66,8 @@ class GeventWorker(AsyncWorker):
         try:
             while self.alive:
                 self.notify()
-                if self.ppid != os.getppid():
-                    self.log.info("Parent changed, shutting down: %s", self)
+                if not pid_exists(self.ppid):
+                    self.log.info("Parent died, shutting down: %s", self)
                     break
 
                 gevent.sleep(1.0)

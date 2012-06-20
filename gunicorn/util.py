@@ -14,6 +14,7 @@ except ImportError:
     # Python on Solaris compiled with Sun Studio doesn't have ctypes
     ctypes = None
 
+import errno
 import fcntl
 import os
 import pkg_resources
@@ -353,3 +354,17 @@ def check_is_writeable(path):
     except IOError, e:
         raise RuntimeError("Error: '%s' isn't writable [%r]" % (path, e))
     f.close()
+
+def pid_exists(pid):
+    """Check whether pid exists in the current process table."""
+    if not isinstance(pid, int):
+        raise TypeError('an integer is required')
+    if pid < 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        e = sys.exc_info()[1]
+        return e.errno == errno.EPERM
+    else:
+        return True
